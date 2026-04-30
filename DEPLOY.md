@@ -127,7 +127,82 @@ sudo systemctl status phantom
 journalctl -u phantom -f         # tail logs
 ```
 
-## HTTPS + a real domain — Caddy
+## Cloudflare + a subdomain (recommended path)
+
+If your domain is on Cloudflare, you don't need Let's Encrypt at the origin — Cloudflare can handle TLS for you. Three options, increasing security:
+
+### Option 1 — "Flexible" mode (fastest, weakest)
+
+Browser ⇄ Cloudflare over HTTPS, Cloudflare ⇄ EC2 over plain HTTP.
+
+1. **Cloudflare DNS**: add an `A` record for `phantom.yourdomain.nz` pointing at your EC2 public IP. Set proxy status to **Proxied** (orange cloud).
+2. **Cloudflare SSL/TLS** → set mode to **Flexible**.
+3. **EC2 security group**: open port **80** inbound. Origin runs plain HTTP on 80 with nginx or Caddy reverse-proxying to localhost:3000.
+4. Skip the Caddy TLS section below — you only need the `reverse_proxy` part.
+
+This works but the Cloudflare-to-origin leg is unencrypted. Don't use Flexible for anything beyond a demo, especially since invoice uploads pass through that leg.
+
+### Option 2 — "Full (strict)" with a Cloudflare Origin Certificate (recommended)
+
+Full TLS end-to-end. Cloudflare gives you a free 15-year certificate that's only trusted by their proxy — perfect for the origin leg.
+
+1. **Cloudflare dashboard** → SSL/TLS → **Origin Server** → Create Certificate. Defaults are fine. Save the certificate and private key as:
+    ```
+    /etc/ssl/phantom/origin.pem      # certificate
+    /etc/ssl/phantom/origin.key      # private key (chmod 600)
+    ```
+2. **EC2 security group**: open port **443** inbound. *Lock it down to Cloudflare's IP ranges only* — see [cloudflare.com/ips](https://www.cloudflare.com/ips/). Don't expose 443 to the world; only Cloudflare should reach it.
+3. **Caddy** (or nginx) on the origin terminating TLS with the Origin Certificate:
+    ```caddy
+    phantom.yourdomain.nz:443 {
+        tls /etc/ssl/phantom/origin.pem /etc/ssl/phantom/origin.key
+        reverse_proxy localhost:3000
+    }
+    ```
+4. **Cloudflare SSL/TLS** → set mode to **Full (strict)**.
+5. **DNS**: A-record for the subdomain pointing at the EC2 IP, **Proxied**.
+
+You now have CDN caching, WAF, and DDoS protection on top of full TLS, with the origin only reachable from Cloudflare.
+
+### Option 3 — Cloudflare Tunnel (most secure, no public IP needed)
+
+`cloudflared` runs as a daemon on the EC2 and opens an outbound connection to Cloudflare. No inbound ports, no public IP exposure, no security group changes for HTTPS.
+
+```bash
+# Install cloudflared (Amazon Linux 2023)
+curl -L --output cloudflared.rpm https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-x86_64.rpm
+sudo rpm -ivh cloudflared.rpm
+
+# Auth (opens a browser link — paste it into your local browser)
+cloudflared tunnel login
+
+# Create the tunnel
+cloudflared tunnel create phantom
+
+# Route the subdomain to the tunnel
+cloudflared tunnel route dns phantom phantom.yourdomain.nz
+
+# Config
+sudo mkdir -p /etc/cloudflared
+sudo tee /etc/cloudflared/config.yml > /dev/null <<'EOF'
+tunnel: phantom
+credentials-file: /home/ec2-user/.cloudflared/<tunnel-id>.json
+ingress:
+  - hostname: phantom.yourdomain.nz
+    service: http://localhost:3000
+  - service: http_status:404
+EOF
+
+# Run as a service
+sudo cloudflared service install
+sudo systemctl start cloudflared
+```
+
+Now you can **close port 3000, 80, and 443 entirely** on the EC2 security group. The instance has zero inbound exposure. Everything reaches Phantom through Cloudflare's edge.
+
+This is the right move for a back-of-house tool that doesn't need to be web-discoverable. Pair with **Cloudflare Access** to require Google/email-based login at the edge — solves the "Phantom has no auth" problem until you build proper auth into the app itself.
+
+## HTTPS + a real domain — Caddy (without Cloudflare)
 
 Caddy fetches Let's Encrypt certificates automatically, so this is the lowest-friction path to TLS.
 
