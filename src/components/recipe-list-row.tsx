@@ -44,13 +44,19 @@ export function RecipeListRow({
 
   return (
     <div className="px-7 py-6 flex items-center justify-between gap-7 hover:bg-ink-800/40 transition-colors group">
-      <Link href={`/recipes/${recipe.id}`} className="min-w-0 flex-1">
+      <Link href={`/recipes/${recipe.id}`} className="min-w-0 flex-1 cursor-pointer">
         <div className="flex items-baseline gap-3">
-          <span className="font-display text-2xl text-cream-100 group-hover:text-cream-50 truncate">
+          <span className="font-display text-2xl text-cream-100 group-hover:text-cream-50 group-hover:underline decoration-vermillion decoration-2 underline-offset-[6px] truncate transition-all">
             {recipe.name}
           </span>
+          <span
+            className="text-sm font-mono text-vermillion opacity-0 group-hover:opacity-100 transition-opacity"
+            aria-hidden
+          >
+            →
+          </span>
           {recipe.venue && (
-            <span className="text-sm font-display italic text-cream-400">
+            <span className="text-sm font-display italic text-cream-400 ml-auto">
               {VENUE_LABELS[recipe.venue]}
             </span>
           )}
