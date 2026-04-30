@@ -43,28 +43,29 @@ export function RecipeDetailSummary({
 
   return (
     <>
-      <section className="grid grid-cols-2 lg:grid-cols-5 gap-3 text-sm">
+      <section className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <Cell label="Plate cost" value={nzd(result.plateCost)} />
         <Cell
-          label="Menu price"
+          label="Menu"
           value={result.salePriceIncGst != null ? nzd(result.salePriceIncGst) : "—"}
+          muted={result.salePriceIncGst == null}
         />
         <Cell
-          label="Achieved margin"
+          label="Achieved"
           value={result.achievedSaleMarginPct != null ? pct(result.achievedSaleMarginPct) : "—"}
           tone={
             result.achievedSaleMarginPct == null
               ? undefined
               : result.achievedSaleMarginPct >= target - 2
-                ? "accent"
+                ? "good"
                 : result.achievedSaleMarginPct < target - 5
                   ? "bad"
                   : undefined
           }
         />
-        <div className="rounded border border-border bg-panel px-4 py-3">
-          <div className="text-xs uppercase tracking-wider text-muted">
-            Target margin {pending && <span className="text-muted">(saving…)</span>}
+        <div className="surface px-6 py-5">
+          <div className="flex items-baseline justify-between">
+            <span className="eyebrow">Target {pending && <span className="text-cream-500 normal-case">·saving</span>}</span>
           </div>
           <div className="mt-1 flex items-baseline gap-1">
             <input
@@ -79,28 +80,28 @@ export function RecipeDetailSummary({
                 if (e.key === "Escape") setTarget(savedTarget);
               }}
               disabled={pending}
-              className={`w-16 text-2xl font-semibold font-mono bg-transparent border-b focus:outline-none ${
-                dirty ? "border-accent text-accent" : "border-border"
+              className={`w-20 text-4xl font-display font-light bg-transparent border-b focus:outline-none transition-colors ${
+                dirty ? "border-vermillion text-vermillion" : "border-ink-600 hover:border-cream-400 text-cream-50"
               }`}
             />
-            <span className="text-muted text-xl">%</span>
+            <span className="text-cream-500 text-2xl">%</span>
           </div>
         </div>
         <Cell
           label={
             result.suggestionAction === "hold"
-              ? "Hold price"
+              ? "Hold"
               : result.suggestionAction === "raise"
                 ? "Raise to"
                 : "Suggested"
           }
           value={nzd(result.suggestedPriceIncGst)}
-          tone={result.suggestionAction === "raise" ? "bad" : "accent"}
+          tone={result.suggestionAction === "raise" ? "bad" : "good"}
           subtitle={
             result.suggestionAction === "raise" && result.salePriceIncGst != null
               ? `+${nzd(result.suggestedPriceIncGst - result.salePriceIncGst)} on the menu`
               : result.suggestionAction === "hold"
-                ? "already above target"
+                ? "above target"
                 : "no menu price set"
           }
         />
@@ -114,51 +115,49 @@ export function RecipeDetailSummary({
 function BreakdownTable({ result }: { result: ReturnType<typeof costRecipe> }) {
   return (
     <section>
-      <div className="flex items-baseline justify-between mb-3">
-        <h2 className="text-sm uppercase tracking-wider text-muted">Ingredient breakdown</h2>
-        <div className="text-xs text-muted">
-          Floor (cost-plus): <span className="font-mono text-text">{nzd(result.floorPriceIncGst)}</span>
+      <div className="flex items-baseline justify-between mb-5">
+        <div className="section-eyebrow !mb-0">Breakdown</div>
+        <div className="text-base text-cream-500">
+          Floor: <span className="font-mono text-cream-100">{nzd(result.floorPriceIncGst)}</span>
         </div>
       </div>
-      <div className="rounded-lg border border-border bg-panel overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="text-left text-muted">
-            <tr className="border-b border-border">
-              <th className="px-4 py-3 font-medium">Ingredient</th>
-              <th className="px-4 py-3 font-medium text-right">Qty</th>
-              <th className="px-4 py-3 font-medium text-right">Effective kg</th>
-              <th className="px-4 py-3 font-medium text-right">$ / kg</th>
-              <th className="px-4 py-3 font-medium text-right">Line cost</th>
-              <th className="px-4 py-3 font-medium text-right">% of plate</th>
+      <div className="surface overflow-hidden">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-ink-600/60 bg-ink-900/40 text-left">
+              <Th>Ingredient</Th>
+              <Th align="right">Qty</Th>
+              <Th align="right">Effective kg</Th>
+              <Th align="right">$ / kg</Th>
+              <Th align="right">Line</Th>
+              <Th align="right">% plate</Th>
             </tr>
           </thead>
           <tbody>
             {result.breakdown.map((b, i) => {
               const pctOfPlate = result.plateCost > 0 ? (b.cost / result.plateCost) * 100 : 0;
               return (
-                <tr key={i} className="border-b border-border/40 last:border-0">
-                  <td className="px-4 py-3">{b.name}</td>
-                  <td className="px-4 py-3 text-right font-mono">
+                <tr key={i} className={`border-b border-ink-600/40 last:border-0 ${i % 2 === 1 ? "bg-ink-900/30" : ""}`}>
+                  <td className="px-6 py-4 font-display text-lg text-cream-100">{b.name}</td>
+                  <td className="px-6 py-4 text-right font-mono text-base text-cream-300">
                     {b.quantity}
                     {b.unit}
                   </td>
-                  <td className="px-4 py-3 text-right font-mono text-muted">{b.quantityKg}</td>
-                  <td className="px-4 py-3 text-right font-mono text-muted">{nzd(b.pricePerKg)}</td>
-                  <td className="px-4 py-3 text-right font-mono">{nzd(b.cost)}</td>
-                  <td className="px-4 py-3 text-right font-mono text-muted">
-                    {pctOfPlate.toFixed(0)}%
-                  </td>
+                  <td className="px-6 py-4 text-right font-mono text-base text-cream-500">{b.quantityKg}</td>
+                  <td className="px-6 py-4 text-right font-mono text-base text-cream-500">{nzd(b.pricePerKg)}</td>
+                  <td className="px-6 py-4 text-right font-mono text-base text-cream-100">{nzd(b.cost)}</td>
+                  <td className="px-6 py-4 text-right font-mono text-base text-cream-500">{pctOfPlate.toFixed(0)}%</td>
                 </tr>
               );
             })}
-            <tr className="border-t-2 border-border bg-bg/40">
-              <td className="px-4 py-3 font-medium" colSpan={4}>
+            <tr className="border-t-2 border-ink-600 bg-ink-900/60">
+              <td className="px-6 py-4 eyebrow" colSpan={4}>
                 Plate cost
               </td>
-              <td className="px-4 py-3 text-right font-mono font-semibold">
+              <td className="px-6 py-4 text-right font-mono text-base font-semibold text-cream-50">
                 {nzd(result.plateCost)}
               </td>
-              <td className="px-4 py-3"></td>
+              <td className="px-6 py-4"></td>
             </tr>
           </tbody>
         </table>
@@ -167,23 +166,40 @@ function BreakdownTable({ result }: { result: ReturnType<typeof costRecipe> }) {
   );
 }
 
+function Th({ children, align = "left" }: { children: React.ReactNode; align?: "left" | "right" }) {
+  return (
+    <th className={`px-6 py-4 eyebrow font-medium ${align === "right" ? "text-right" : "text-left"}`}>
+      {children}
+    </th>
+  );
+}
+
 function Cell({
   label,
   value,
   subtitle,
   tone,
+  muted,
 }: {
   label: string;
   value: string;
   subtitle?: string;
-  tone?: "accent" | "bad";
+  tone?: "good" | "bad";
+  muted?: boolean;
 }) {
-  const valueClass = tone === "bad" ? "text-bad" : tone === "accent" ? "text-accent" : "";
+  const valueClass =
+    tone === "bad"
+      ? "text-vermillion-light"
+      : tone === "good"
+        ? "text-bamboo"
+        : muted
+          ? "text-cream-500"
+          : "text-cream-50";
   return (
-    <div className="rounded border border-border bg-panel px-4 py-3">
-      <div className="text-xs uppercase tracking-wider text-muted">{label}</div>
-      <div className={`mt-1 text-2xl font-semibold font-mono ${valueClass}`}>{value}</div>
-      {subtitle && <div className="text-xs text-muted mt-1">{subtitle}</div>}
+    <div className="surface px-6 py-5">
+      <span className="eyebrow">{label}</span>
+      <div className={`mt-1 font-display text-4xl font-light tracking-tight ${valueClass}`}>{value}</div>
+      {subtitle && <div className="text-sm text-cream-500 mt-1">{subtitle}</div>}
     </div>
   );
 }

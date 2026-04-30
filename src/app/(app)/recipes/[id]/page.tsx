@@ -16,24 +16,25 @@ export default async function RecipeDetailPage({
   if (!recipe) notFound();
 
   return (
-    <div className="flex flex-col gap-6">
-      <header className="flex flex-col gap-2">
-        <Link href="/recipes" className="text-sm text-muted hover:text-text w-fit">
+    <div className="flex flex-col gap-10">
+      <header className="flex flex-col gap-3 border-b border-ink-600/60 pb-7">
+        <Link href="/recipes" className="eyebrow text-cream-500 hover:text-cream-100 w-fit transition-colors">
           ← All recipes
         </Link>
-        <div className="flex items-center justify-between gap-3 flex-wrap">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">{recipe.name}</h1>
-            <div className="text-sm text-muted mt-1 flex items-center gap-2">
-              {recipe.venue && (
-                <span className="px-2 py-0.5 rounded bg-border/60 text-text">
-                  {VENUE_LABELS[recipe.venue]}
-                </span>
-              )}
-              <span>
-                {recipe.items.length} ingredients · updated {recipe.updatedAt}
-              </span>
-            </div>
+        <div>
+          <h1 className="font-display text-5xl font-light tracking-tight text-cream-50">
+            {recipe.name}
+          </h1>
+          <div className="mt-4 text-base text-cream-400 flex items-center gap-3">
+            {recipe.venue && (
+              <>
+                <span className="font-display italic text-lg text-cream-200">{VENUE_LABELS[recipe.venue]}</span>
+                <span className="text-cream-500">·</span>
+              </>
+            )}
+            <span className="font-mono">{recipe.items.length} ingredients</span>
+            <span className="text-cream-500">·</span>
+            <span className="font-mono text-cream-500">updated {recipe.updatedAt}</span>
           </div>
         </div>
       </header>
@@ -42,8 +43,8 @@ export default async function RecipeDetailPage({
 
       {recipe.notes && (
         <section>
-          <h2 className="text-sm uppercase tracking-wider text-muted mb-2">Notes</h2>
-          <div className="rounded-lg border border-border bg-panel p-4 text-sm whitespace-pre-wrap">
+          <div className="section-eyebrow">Notes</div>
+          <div className="surface p-6 text-base whitespace-pre-wrap font-display italic text-cream-200">
             {recipe.notes}
           </div>
         </section>

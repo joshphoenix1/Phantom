@@ -41,27 +41,35 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="flex flex-col gap-8">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
-        <p className="text-sm text-muted">Plate-cost overview across both venues</p>
+    <div className="flex flex-col gap-14">
+      <header className="border-b border-ink-600/60 pb-7">
+        <div className="eyebrow mb-3">Service</div>
+        <h1 className="font-display text-7xl font-light tracking-tight text-cream-50">
+          Tonight&rsquo;s <span className="display-italic text-vermillion">numbers</span>
+        </h1>
+        <p className="mt-4 font-display italic text-cream-400 text-xl">
+          Plate cost across both kitchens · {new Date().toLocaleDateString("en-NZ", { weekday: "long", day: "numeric", month: "long" })}
+        </p>
       </header>
 
-      <section className="grid grid-cols-4 gap-4">
+      <section className="grid grid-cols-4 gap-5">
         <Stat label="Recipes" value={totalRecipes.toString()} />
         <Stat label="Ingredients" value={totalIngredients.toString()} />
-        <Stat label="Avg achieved margin" value={pct(avgAchievedMargin)} />
+        <Stat label="Avg margin" value={pct(avgAchievedMargin)} accent />
         <Stat
-          label="Needs raise / over target"
-          value={`${underTarget.length} ↑ / ${overTarget.length} ✓+`}
+          label="Movement"
+          value={`${underTarget.length} ↑`}
+          subtitle={`${overTarget.length} above target`}
         />
       </section>
 
-      {Array.from(byVenue.entries())
-        .sort((a, b) => (a[0] ?? "").localeCompare(b[0] ?? ""))
-        .map(([venue, items]) => (
-          <VenueSection key={venue ?? "none"} venue={venue} items={items} />
-        ))}
+      <div className="flex flex-col gap-16">
+        {Array.from(byVenue.entries())
+          .sort((a, b) => (a[0] ?? "").localeCompare(b[0] ?? ""))
+          .map(([venue, items]) => (
+            <VenueSection key={venue ?? "none"} venue={venue} items={items} />
+          ))}
+      </div>
     </div>
   );
 }
@@ -79,34 +87,43 @@ function VenueSection({
   const label = venue ? VENUE_LABELS[venue] : "Unassigned";
   return (
     <section>
-      <h2 className="text-sm uppercase tracking-wider text-muted mb-3">{label}</h2>
-      <div className="rounded-lg border border-border bg-panel">
-        <table className="w-full text-sm">
-          <thead className="text-left text-muted">
-            <tr className="border-b border-border">
-              <th className="px-4 py-3 font-medium">Dish</th>
-              <th className="px-4 py-3 font-medium text-right">Plate cost</th>
-              <th className="px-4 py-3 font-medium text-right">Menu price</th>
-              <th className="px-4 py-3 font-medium text-right">Achieved</th>
-              <th className="px-4 py-3 font-medium text-right">Target</th>
-              <th className="px-4 py-3 font-medium text-right">Floor</th>
-              <th className="px-4 py-3 font-medium text-right">Suggested</th>
+      <div className="flex items-baseline justify-between mb-6">
+        <h2 className="font-display text-3xl font-medium text-cream-50">{label}</h2>
+        <div className="eyebrow">{items.length} dishes</div>
+      </div>
+
+      <div className="surface overflow-hidden">
+        <table className="w-full">
+          <thead className="text-left">
+            <tr className="border-b border-ink-600/60 bg-ink-900/40">
+              <Th>Dish</Th>
+              <Th align="right">Plate cost</Th>
+              <Th align="right">Menu</Th>
+              <Th align="right">Achieved</Th>
+              <Th align="right">Target</Th>
+              <Th align="right">Floor</Th>
+              <Th align="right">Suggested</Th>
             </tr>
           </thead>
           <tbody>
-            {items.map(({ recipe, result }) => (
-              <tr key={recipe.id} className="border-b border-border/60 last:border-0">
-                <td className="px-4 py-3">{recipe.name}</td>
-                <td className="px-4 py-3 text-right font-mono">{nzd(result.plateCost)}</td>
-                <td className="px-4 py-3 text-right font-mono">
-                  {result.salePriceIncGst != null ? nzd(result.salePriceIncGst) : <span className="text-muted">—</span>}
+            {items.map(({ recipe, result }, idx) => (
+              <tr
+                key={recipe.id}
+                className={`border-b border-ink-600/40 last:border-0 hover:bg-ink-800/40 transition-colors ${idx % 2 === 1 ? "bg-ink-900/30" : ""}`}
+              >
+                <td className="px-6 py-4">
+                  <span className="font-display text-lg text-cream-100">{recipe.name}</span>
                 </td>
-                <td className="px-4 py-3 text-right font-mono">
+                <td className="px-6 py-4 text-right font-mono text-base text-cream-300">{nzd(result.plateCost)}</td>
+                <td className="px-6 py-4 text-right font-mono text-base">
+                  {result.salePriceIncGst != null ? nzd(result.salePriceIncGst) : <span className="text-cream-500">—</span>}
+                </td>
+                <td className="px-6 py-4 text-right">
                   <MarginBadge value={result.achievedSaleMarginPct} target={recipe.targetMarginPct} />
                 </td>
-                <td className="px-4 py-3 text-right font-mono text-muted">{pct(recipe.targetMarginPct, 0)}</td>
-                <td className="px-4 py-3 text-right font-mono text-muted">{nzd(result.floorPriceIncGst)}</td>
-                <td className="px-4 py-3 text-right">
+                <td className="px-6 py-4 text-right font-mono text-base text-cream-500">{pct(recipe.targetMarginPct, 0)}</td>
+                <td className="px-6 py-4 text-right font-mono text-base text-cream-500">{nzd(result.floorPriceIncGst)}</td>
+                <td className="px-6 py-4 text-right">
                   <SuggestionCell result={result} />
                 </td>
               </tr>
@@ -118,20 +135,42 @@ function VenueSection({
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Th({ children, align = "left" }: { children: React.ReactNode; align?: "left" | "right" }) {
   return (
-    <div className="rounded-lg border border-border bg-panel px-4 py-3">
-      <div className="text-xs uppercase tracking-wider text-muted">{label}</div>
-      <div className="mt-1 text-2xl font-semibold font-mono">{value}</div>
+    <th className={`px-6 py-4 eyebrow font-medium ${align === "right" ? "text-right" : "text-left"}`}>
+      {children}
+    </th>
+  );
+}
+
+function Stat({
+  label,
+  value,
+  subtitle,
+  accent,
+}: {
+  label: string;
+  value: string;
+  subtitle?: string;
+  accent?: boolean;
+}) {
+  return (
+    <div className="stat-tile">
+      <span className="eyebrow">{label}</span>
+      <div className={`mt-1 font-display text-5xl font-light tracking-tight ${accent ? "text-vermillion" : "text-cream-50"}`}>
+        {value}
+      </div>
+      {subtitle && <div className="text-sm font-mono text-cream-500 mt-1">{subtitle}</div>}
     </div>
   );
 }
 
 function MarginBadge({ value, target }: { value: number | null; target: number }) {
-  if (value == null) return <span className="text-muted">—</span>;
+  if (value == null) return <span className="text-cream-500">—</span>;
   const delta = value - target;
-  const tone = delta >= -2 ? "text-accent" : delta >= -5 ? "text-warn" : "text-bad";
-  return <span className={tone}>{value.toFixed(1)}%</span>;
+  const tone =
+    delta >= -2 ? "text-bamboo" : delta >= -5 ? "text-amber-warm" : "text-vermillion-light";
+  return <span className={`font-mono text-base ${tone}`}>{value.toFixed(1)}%</span>;
 }
 
 function SuggestionCell({ result }: { result: ReturnType<typeof costRecipe> }) {
@@ -139,8 +178,8 @@ function SuggestionCell({ result }: { result: ReturnType<typeof costRecipe> }) {
   if (result.suggestionAction === "hold") {
     return (
       <div>
-        <div className="font-mono text-muted">{value}</div>
-        <div className="text-xs text-muted">hold</div>
+        <div className="font-mono text-base text-cream-300">{value}</div>
+        <div className="eyebrow text-cream-500">hold</div>
       </div>
     );
   }
@@ -148,15 +187,15 @@ function SuggestionCell({ result }: { result: ReturnType<typeof costRecipe> }) {
     const delta = result.salePriceIncGst != null ? result.suggestedPriceIncGst - result.salePriceIncGst : 0;
     return (
       <div>
-        <div className="font-mono text-bad">{value}</div>
-        <div className="text-xs text-bad">raise +{nzd(delta)}</div>
+        <div className="font-mono text-base text-vermillion-light">{value}</div>
+        <div className="eyebrow text-vermillion-light">raise +{nzd(delta)}</div>
       </div>
     );
   }
   return (
     <div>
-      <div className="font-mono text-accent">{value}</div>
-      <div className="text-xs text-muted">set</div>
+      <div className="font-mono text-base text-bamboo">{value}</div>
+      <div className="eyebrow text-cream-500">set</div>
     </div>
   );
 }

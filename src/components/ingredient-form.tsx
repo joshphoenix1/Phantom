@@ -35,37 +35,37 @@ export function AddIngredientForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="rounded-lg border border-border bg-panel p-4 flex flex-col gap-3">
-      <div className="text-sm font-medium">Add ingredient</div>
-      <div className="grid grid-cols-[2fr_1fr_1fr_auto] gap-2">
+    <form onSubmit={onSubmit} className="surface p-6 flex flex-col gap-4">
+      <div className="section-eyebrow !mb-0">Add ingredient</div>
+      <div className="grid grid-cols-[2fr_1fr_1fr_auto] gap-3">
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Ingredient name"
-          className="rounded border border-border bg-bg px-3 py-1.5 text-sm focus:outline-none focus:border-accent"
+          className="rounded-sm border border-ink-600 bg-ink-900 text-cream-100 px-4 py-2.5 text-base focus:outline-none focus:border-vermillion placeholder:text-cream-500"
         />
         <input
           value={pricePerKg}
           onChange={(e) => setPricePerKg(e.target.value)}
           placeholder="$ / kg"
           inputMode="decimal"
-          className="rounded border border-border bg-bg px-3 py-1.5 text-sm font-mono focus:outline-none focus:border-accent"
+          className="rounded-sm border border-ink-600 bg-ink-900 text-cream-100 px-4 py-2.5 text-base font-mono focus:outline-none focus:border-vermillion placeholder:text-cream-500"
         />
         <input
           value={supplier}
           onChange={(e) => setSupplier(e.target.value)}
           placeholder="Supplier (optional)"
-          className="rounded border border-border bg-bg px-3 py-1.5 text-sm focus:outline-none focus:border-accent"
+          className="rounded-sm border border-ink-600 bg-ink-900 text-cream-100 px-4 py-2.5 text-base focus:outline-none focus:border-vermillion placeholder:text-cream-500"
         />
         <button
           type="submit"
           disabled={isPending}
-          className="px-4 py-1.5 text-sm rounded bg-accent text-bg font-medium disabled:opacity-50"
+          className="px-6 py-2.5 text-base rounded-sm bg-vermillion text-cream-50 font-mono uppercase tracking-eyebrow hover:bg-vermillion-light transition-colors disabled:opacity-50"
         >
           {isPending ? "Adding…" : "Add"}
         </button>
       </div>
-      {error && <div className="text-xs text-bad">{error}</div>}
+      {error && <div className="text-sm text-vermillion-light">{error}</div>}
     </form>
   );
 }
@@ -92,7 +92,7 @@ export function EditableIngredientPrice({ id, initial }: { id: string; initial: 
     return (
       <button
         onClick={() => setEditing(true)}
-        className="font-mono hover:bg-border/40 rounded px-1 -mx-1 transition-colors"
+        className="font-mono text-base text-cream-100 hover:text-vermillion-light hover:bg-ink-700/40 rounded-sm px-2 -mx-2 py-0.5 transition-colors"
         title="Click to edit"
       >
         ${initial.toFixed(2)}
@@ -115,7 +115,7 @@ export function EditableIngredientPrice({ id, initial }: { id: string; initial: 
       autoFocus
       disabled={isPending}
       inputMode="decimal"
-      className="w-20 text-right rounded border border-accent bg-bg px-2 py-0.5 font-mono text-sm focus:outline-none"
+      className="w-24 text-right rounded-sm border border-vermillion bg-ink-900 text-cream-100 px-2 py-0.5 font-mono text-base focus:outline-none"
     />
   );
 }

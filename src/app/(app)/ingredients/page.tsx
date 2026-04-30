@@ -23,53 +23,59 @@ export default async function IngredientsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <header className="flex items-center justify-between">
+    <div className="flex flex-col gap-12">
+      <header className="flex items-end justify-between border-b border-ink-600/60 pb-7">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Ingredients</h1>
-          <p className="text-sm text-muted">
-            Master price list, kg-normalised. Click a price to edit. Per-dish breakdown below.
+          <div className="eyebrow mb-3">Pantry</div>
+          <h1 className="font-display text-7xl font-light tracking-tight text-cream-50">
+            <span className="display-italic text-vermillion">Ingredients</span>
+          </h1>
+          <p className="mt-4 font-display italic text-cream-400 text-xl">
+            Master price list, kg-normalised · click a price to edit · per-dish breakdown below
           </p>
         </div>
         <Link
           href="/ingredients/import"
-          className="px-3 py-2 text-sm rounded bg-accent text-bg font-medium hover:bg-accent/90"
+          className="px-6 py-3 text-base rounded-sm bg-vermillion text-cream-50 font-mono uppercase tracking-eyebrow hover:bg-vermillion-light transition-colors shadow-seal"
         >
-          + Import supplier invoice
+          + Invoice
         </Link>
       </header>
 
       <AddIngredientForm />
 
       <section>
-        <h2 className="text-sm uppercase tracking-wider text-muted mb-3">Master list</h2>
-        <div className="rounded-lg border border-border bg-panel">
-          <table className="w-full text-sm">
-            <thead className="text-left text-muted">
-              <tr className="border-b border-border">
-                <th className="px-4 py-3 font-medium">Ingredient</th>
-                <th className="px-4 py-3 font-medium">Supplier</th>
-                <th className="px-4 py-3 font-medium text-right">Price / kg</th>
-                <th className="px-4 py-3 font-medium text-right">Used in</th>
-                <th className="px-4 py-3 font-medium text-right">Last updated</th>
+        <div className="section-eyebrow">Master list</div>
+        <div className="surface overflow-hidden">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-ink-600/60 bg-ink-900/40 text-left">
+                <Th>Ingredient</Th>
+                <Th>Supplier</Th>
+                <Th align="right">Price / kg</Th>
+                <Th align="right">Used in</Th>
+                <Th align="right">Updated</Th>
               </tr>
             </thead>
             <tbody>
-              {ingredients.map((ing) => {
+              {ingredients.map((ing, idx) => {
                 const usageCount = recipes.filter((r) =>
                   r.items.some((i) => i.ingredientId === ing.id),
                 ).length;
                 return (
-                  <tr key={ing.id} className="border-b border-border/60 last:border-0">
-                    <td className="px-4 py-3">{ing.name}</td>
-                    <td className="px-4 py-3 text-muted">{ing.supplier ?? "—"}</td>
-                    <td className="px-4 py-3 text-right">
+                  <tr
+                    key={ing.id}
+                    className={`border-b border-ink-600/40 last:border-0 hover:bg-ink-800/40 transition-colors ${idx % 2 === 1 ? "bg-ink-900/30" : ""}`}
+                  >
+                    <td className="px-6 py-3.5 font-display text-lg text-cream-100">{ing.name}</td>
+                    <td className="px-6 py-3.5 text-cream-500 text-base">{ing.supplier ?? "—"}</td>
+                    <td className="px-6 py-3.5 text-right text-base">
                       <EditableIngredientPrice id={ing.id} initial={ing.pricePerKg} />
                     </td>
-                    <td className="px-4 py-3 text-right text-muted">
-                      {usageCount === 0 ? <span className="text-muted/60">unused</span> : `${usageCount} dish${usageCount === 1 ? "" : "es"}`}
+                    <td className="px-6 py-3.5 text-right text-base text-cream-500">
+                      {usageCount === 0 ? <span className="opacity-60">unused</span> : `${usageCount}`}
                     </td>
-                    <td className="px-4 py-3 text-right text-muted">{ing.lastUpdated}</td>
+                    <td className="px-6 py-3.5 text-right text-base text-cream-500 font-mono">{ing.lastUpdated}</td>
                   </tr>
                 );
               })}
@@ -79,72 +85,70 @@ export default async function IngredientsPage() {
       </section>
 
       <section>
-        <h2 className="text-sm uppercase tracking-wider text-muted mb-3">By dish</h2>
-        <div className="flex flex-col gap-4">
+        <div className="section-eyebrow">By dish</div>
+        <div className="flex flex-col gap-10">
           {Array.from(groupedRecipes.entries())
             .sort((a, b) => a[0].localeCompare(b[0]))
             .map(([venueKey, venueRecipes]) => (
               <div key={venueKey}>
-                <div className="text-xs uppercase tracking-wider text-muted mb-2">
+                <h3 className="font-display text-2xl text-cream-100 mb-5">
                   {venueKey === "unassigned"
                     ? "Unassigned"
                     : VENUE_LABELS[venueKey as keyof typeof VENUE_LABELS]}
-                </div>
+                </h3>
                 <div className="grid gap-3 grid-cols-1 lg:grid-cols-2">
                   {venueRecipes.map((r) => {
                     const result = costRecipe(r.items, ingMap, r.targetMarginPct, r.salePriceIncGst);
                     return (
-                      <details
-                        key={r.id}
-                        className="rounded-lg border border-border bg-panel group"
-                        open={false}
-                      >
-                        <summary className="px-4 py-3 cursor-pointer flex items-center justify-between gap-3 list-none">
-                          <span className="font-medium truncate">{r.name}</span>
-                          <span className="text-sm text-muted shrink-0">
-                            {r.items.length} ingredients · plate{" "}
-                            <span className="font-mono text-text">{nzd(result.plateCost)}</span>
+                      <details key={r.id} className="surface group">
+                        <summary className="px-6 py-4 cursor-pointer flex items-center justify-between gap-4 list-none hover:bg-ink-800/40 transition-colors">
+                          <span className="font-display text-lg text-cream-100 group-open:text-cream-50">
+                            {r.name}
+                          </span>
+                          <span className="text-base text-cream-400 shrink-0 flex items-center gap-3">
+                            <span className="eyebrow">{r.items.length} ing</span>
+                            <span className="font-mono text-cream-100">{nzd(result.plateCost)}</span>
                           </span>
                         </summary>
-                        <div className="border-t border-border">
-                          <table className="w-full text-sm">
-                            <thead className="text-left text-muted">
-                              <tr className="border-b border-border">
-                                <th className="px-4 py-2 font-medium">Ingredient</th>
-                                <th className="px-4 py-2 font-medium text-right">Qty</th>
-                                <th className="px-4 py-2 font-medium text-right">$ / kg</th>
-                                <th className="px-4 py-2 font-medium text-right">Line cost</th>
-                                <th className="px-4 py-2 font-medium text-right">% of plate</th>
+                        <div className="border-t border-ink-600/60">
+                          <table className="w-full">
+                            <thead>
+                              <tr className="border-b border-ink-600/40 text-left">
+                                <Th small>Ingredient</Th>
+                                <Th small align="right">Qty</Th>
+                                <Th small align="right">$ / kg</Th>
+                                <Th small align="right">Cost</Th>
+                                <Th small align="right">% plate</Th>
                               </tr>
                             </thead>
                             <tbody>
                               {result.breakdown.map((b, i) => {
                                 const pctOfPlate = result.plateCost > 0 ? (b.cost / result.plateCost) * 100 : 0;
                                 return (
-                                  <tr key={i} className="border-b border-border/40 last:border-0">
-                                    <td className="px-4 py-2">{b.name}</td>
-                                    <td className="px-4 py-2 text-right font-mono">
+                                  <tr key={i} className="border-b border-ink-600/30 last:border-0">
+                                    <td className="px-6 py-2.5 text-cream-200 text-base">{b.name}</td>
+                                    <td className="px-6 py-2.5 text-right font-mono text-base text-cream-300">
                                       {b.quantity}
                                       {b.unit}
                                     </td>
-                                    <td className="px-4 py-2 text-right font-mono text-muted">
+                                    <td className="px-6 py-2.5 text-right font-mono text-base text-cream-500">
                                       {nzd(b.pricePerKg)}
                                     </td>
-                                    <td className="px-4 py-2 text-right font-mono">{nzd(b.cost)}</td>
-                                    <td className="px-4 py-2 text-right font-mono text-muted">
+                                    <td className="px-6 py-2.5 text-right font-mono text-base text-cream-100">
+                                      {nzd(b.cost)}
+                                    </td>
+                                    <td className="px-6 py-2.5 text-right font-mono text-base text-cream-500">
                                       {pctOfPlate.toFixed(0)}%
                                     </td>
                                   </tr>
                                 );
                               })}
-                              <tr className="border-t-2 border-border bg-bg/40">
-                                <td className="px-4 py-2 font-medium" colSpan={3}>
-                                  Plate cost
-                                </td>
-                                <td className="px-4 py-2 text-right font-mono font-medium">
+                              <tr className="bg-ink-900/40 border-t border-ink-600/60">
+                                <td className="px-6 py-2.5 eyebrow" colSpan={3}>Plate cost</td>
+                                <td className="px-6 py-2.5 text-right font-mono text-base font-semibold text-cream-50">
                                   {nzd(result.plateCost)}
                                 </td>
-                                <td className="px-4 py-2"></td>
+                                <td className="px-6 py-2.5"></td>
                               </tr>
                             </tbody>
                           </table>
@@ -158,5 +162,21 @@ export default async function IngredientsPage() {
         </div>
       </section>
     </div>
+  );
+}
+
+function Th({
+  children,
+  align = "left",
+  small = false,
+}: {
+  children: React.ReactNode;
+  align?: "left" | "right";
+  small?: boolean;
+}) {
+  return (
+    <th className={`${small ? "px-6 py-2.5" : "px-6 py-3.5"} eyebrow font-medium ${align === "right" ? "text-right" : "text-left"}`}>
+      {children}
+    </th>
   );
 }

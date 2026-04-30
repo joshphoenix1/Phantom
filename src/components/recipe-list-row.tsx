@@ -43,25 +43,25 @@ export function RecipeListRow({
   const dirty = target !== savedTarget;
 
   return (
-    <div className="px-5 py-4 flex items-center justify-between gap-4 hover:bg-border/20 transition-colors">
-      <Link
-        href={`/recipes/${recipe.id}`}
-        className="min-w-0 flex-1 group"
-      >
-        <div className="flex items-center gap-2">
-          <span className="font-medium truncate group-hover:underline underline-offset-2">{recipe.name}</span>
+    <div className="px-7 py-6 flex items-center justify-between gap-7 hover:bg-ink-800/40 transition-colors group">
+      <Link href={`/recipes/${recipe.id}`} className="min-w-0 flex-1">
+        <div className="flex items-baseline gap-3">
+          <span className="font-display text-2xl text-cream-100 group-hover:text-cream-50 truncate">
+            {recipe.name}
+          </span>
           {recipe.venue && (
-            <span className="text-xs px-2 py-0.5 rounded bg-border/60 text-muted">
+            <span className="text-sm font-display italic text-cream-400">
               {VENUE_LABELS[recipe.venue]}
             </span>
           )}
         </div>
-        <div className="text-xs text-muted mt-0.5">
-          {recipe.items.length} ingredients · updated {recipe.updatedAt}
+        <div className="mt-1.5 eyebrow text-cream-500">
+          {recipe.items.length} ingredients · {recipe.updatedAt}
         </div>
       </Link>
-      <div className="flex gap-6 text-right shrink-0 items-center">
-        <Metric label="Plate" value={nzd(result.plateCost)} />
+
+      <div className="flex gap-8 text-right shrink-0 items-center">
+        <Metric label="Plate cost" value={nzd(result.plateCost)} />
         <Metric
           label="Menu"
           value={result.salePriceIncGst != null ? nzd(result.salePriceIncGst) : "—"}
@@ -70,18 +70,19 @@ export function RecipeListRow({
         <Metric
           label="Achieved"
           value={result.achievedSaleMarginPct != null ? pct(result.achievedSaleMarginPct) : "—"}
-          accent={
-            result.achievedSaleMarginPct != null &&
-            result.achievedSaleMarginPct >= target - 2
-          }
-          bad={
-            result.achievedSaleMarginPct != null &&
-            result.achievedSaleMarginPct < target - 5
+          tone={
+            result.achievedSaleMarginPct == null
+              ? undefined
+              : result.achievedSaleMarginPct >= target - 2
+                ? "good"
+                : result.achievedSaleMarginPct < target - 5
+                  ? "bad"
+                  : undefined
           }
         />
-        <div className="w-24">
-          <div className="text-xs text-muted">Target %</div>
-          <div className="flex items-center gap-1 justify-end">
+        <div className="w-24 text-right">
+          <div className="eyebrow">Target</div>
+          <div className="flex items-center justify-end gap-1 mt-1.5">
             <input
               type="number"
               min={0}
@@ -95,11 +96,11 @@ export function RecipeListRow({
                 if (e.key === "Escape") setTarget(savedTarget);
               }}
               disabled={pending}
-              className={`w-12 text-right rounded border px-1 py-0.5 font-mono text-sm bg-bg focus:outline-none ${
-                dirty ? "border-accent" : "border-border"
+              className={`w-14 text-right rounded-none border-b bg-transparent font-mono text-xl focus:outline-none transition-colors ${
+                dirty ? "border-vermillion text-vermillion" : "border-ink-600 hover:border-cream-400 text-cream-100"
               }`}
             />
-            <span className="text-xs text-muted">%</span>
+            <span className="text-base text-cream-500">%</span>
           </div>
         </div>
         <Metric
@@ -111,8 +112,7 @@ export function RecipeListRow({
                 : "Set"
           }
           value={nzd(result.suggestedPriceIncGst)}
-          bad={result.suggestionAction === "raise"}
-          accent={result.suggestionAction === "set"}
+          tone={result.suggestionAction === "raise" ? "bad" : result.suggestionAction === "set" ? "good" : undefined}
         />
       </div>
     </div>
@@ -123,20 +123,25 @@ function Metric({
   label,
   value,
   muted,
-  accent,
-  bad,
+  tone,
 }: {
   label: string;
   value: string;
   muted?: boolean;
-  accent?: boolean;
-  bad?: boolean;
+  tone?: "good" | "bad";
 }) {
-  const valueClass = bad ? "text-bad" : accent ? "text-accent" : muted ? "text-muted" : "";
+  const valueClass =
+    tone === "bad"
+      ? "text-vermillion-light"
+      : tone === "good"
+        ? "text-bamboo"
+        : muted
+          ? "text-cream-500"
+          : "text-cream-100";
   return (
-    <div className="w-20">
-      <div className="text-xs text-muted">{label}</div>
-      <div className={`font-mono ${valueClass}`}>{value}</div>
+    <div className="w-24">
+      <div className="eyebrow">{label}</div>
+      <div className={`font-mono text-xl mt-1.5 ${valueClass}`}>{value}</div>
     </div>
   );
 }

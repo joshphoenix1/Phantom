@@ -97,30 +97,35 @@ export function NewRecipeForm() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight">New recipe</h1>
-        <p className="text-sm text-muted">Paste a recipe — AI parses, matches, costs, you save.</p>
+    <div className="flex flex-col gap-10">
+      <header className="border-b border-ink-600/60 pb-7">
+        <div className="eyebrow mb-3">New</div>
+        <h1 className="font-display text-7xl font-light tracking-tight text-cream-50">
+          <span className="display-italic text-vermillion">Add</span> a dish
+        </h1>
+        <p className="mt-4 font-display italic text-cream-400 text-xl">
+          Paste a recipe — AI parses, matches, costs, you save.
+        </p>
       </header>
 
-      <form onSubmit={onParse} className="flex flex-col gap-4">
+      <form onSubmit={onParse} className="flex flex-col gap-6">
         <div className="flex flex-col gap-2">
-          <label className="text-xs uppercase tracking-wider text-muted">Recipe text</label>
+          <label className="eyebrow">Recipe text</label>
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
             rows={10}
-            className="font-mono text-sm rounded border border-border bg-panel p-3 focus:outline-none focus:border-accent"
+            className="font-mono text-base rounded-sm border border-ink-600 bg-ink-800/60 text-cream-100 p-5 focus:outline-none focus:border-vermillion placeholder:text-cream-500"
             placeholder="Paste recipe here…"
           />
         </div>
 
-        <div className="grid grid-cols-[1fr_1fr_1fr_auto] gap-3 items-end">
+        <div className="grid grid-cols-[1fr_1fr_1fr_auto] gap-4 items-end">
           <Field label="Venue">
             <select
               value={venue}
               onChange={(e) => setVenue(e.target.value as NonNullable<Venue>)}
-              className="rounded border border-border bg-panel px-2 py-1.5 font-mono text-sm w-full"
+              className="rounded-sm border border-ink-600 bg-ink-900 text-cream-100 px-4 py-2.5 font-mono text-base w-full focus:outline-none focus:border-vermillion"
             >
               <option value="cafe-hanoi">Cafe Hanoi</option>
               <option value="ghost-street">Ghost Street</option>
@@ -133,7 +138,7 @@ export function NewRecipeForm() {
               max={95}
               value={margin}
               onChange={(e) => setMargin(Number(e.target.value))}
-              className="rounded border border-border bg-panel px-2 py-1.5 font-mono text-sm w-full"
+              className="rounded-sm border border-ink-600 bg-ink-900 text-cream-100 px-4 py-2.5 font-mono text-base w-full focus:outline-none focus:border-vermillion"
             />
           </Field>
           <Field label="Menu price (optional)">
@@ -142,13 +147,13 @@ export function NewRecipeForm() {
               onChange={(e) => setSalePrice(e.target.value)}
               placeholder="e.g. 41"
               inputMode="decimal"
-              className="rounded border border-border bg-panel px-2 py-1.5 font-mono text-sm w-full"
+              className="rounded-sm border border-ink-600 bg-ink-900 text-cream-100 px-4 py-2.5 font-mono text-base w-full focus:outline-none focus:border-vermillion placeholder:text-cream-500"
             />
           </Field>
           <button
             type="submit"
             disabled={loading}
-            className="px-4 py-2 text-sm rounded bg-accent text-bg font-medium disabled:opacity-50 h-fit"
+            className="px-6 py-3 text-base rounded-sm bg-vermillion text-cream-50 font-mono uppercase tracking-eyebrow hover:bg-vermillion-light transition-colors disabled:opacity-50 h-fit"
           >
             {loading ? "Parsing…" : "Parse & cost"}
           </button>
@@ -156,30 +161,32 @@ export function NewRecipeForm() {
       </form>
 
       {error && (
-        <div className="rounded border border-bad/50 bg-bad/10 px-4 py-3 text-sm text-bad">{error}</div>
+        <div className="rounded-sm border border-vermillion/50 bg-vermillion/10 px-5 py-4 text-base text-vermillion-light">
+          {error}
+        </div>
       )}
 
       {result && (
-        <section className="rounded-lg border border-border bg-panel p-5 flex flex-col gap-4">
-          <div className="flex items-baseline justify-between gap-3 flex-wrap">
+        <section className="surface p-7 flex flex-col gap-6">
+          <div className="flex items-baseline justify-between gap-3 flex-wrap border-b border-ink-600/60 pb-5">
             <input
               value={recipeName}
               onChange={(e) => setRecipeName(e.target.value)}
-              className="text-lg font-semibold bg-transparent border-b border-transparent hover:border-border focus:border-accent focus:outline-none flex-1 min-w-0"
+              className="font-display text-3xl font-light text-cream-50 bg-transparent border-b border-transparent hover:border-ink-600 focus:border-vermillion focus:outline-none flex-1 min-w-0"
             />
-            <div className="flex items-center gap-3 text-sm">
+            <div className="flex items-center gap-3">
               <ParsedByBadge parsedBy={result.parsedBy} fallbackReason={result.parseError} />
             </div>
           </div>
 
-          <div className="grid grid-cols-4 gap-3 text-sm">
+          <div className="grid grid-cols-4 gap-4">
             <Cell label="Plate cost" value={nzd(result.costing.plateCost)} />
-            <Cell label="Menu price" value={result.costing.salePriceIncGst != null ? nzd(result.costing.salePriceIncGst) : "—"} />
-            <Cell label="Achieved margin" value={result.costing.achievedSaleMarginPct != null ? pct(result.costing.achievedSaleMarginPct) : "—"} />
+            <Cell label="Menu" value={result.costing.salePriceIncGst != null ? nzd(result.costing.salePriceIncGst) : "—"} />
+            <Cell label="Achieved" value={result.costing.achievedSaleMarginPct != null ? pct(result.costing.achievedSaleMarginPct) : "—"} />
             <Cell
               label={
                 result.costing.suggestionAction === "hold"
-                  ? "Hold price"
+                  ? "Hold"
                   : result.costing.suggestionAction === "raise"
                     ? "Raise to"
                     : "Suggested"
@@ -190,28 +197,28 @@ export function NewRecipeForm() {
           </div>
 
           <div>
-            <div className="text-xs uppercase tracking-wider text-muted mb-2">Breakdown</div>
-            <table className="w-full text-sm">
-              <thead className="text-left text-muted">
-                <tr className="border-b border-border">
-                  <th className="py-2 font-medium">Ingredient</th>
-                  <th className="py-2 font-medium text-right">Qty</th>
-                  <th className="py-2 font-medium text-right">Effective kg</th>
-                  <th className="py-2 font-medium text-right">$/kg</th>
-                  <th className="py-2 font-medium text-right">Cost</th>
+            <div className="section-eyebrow">Breakdown</div>
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-ink-600/60 text-left">
+                  <th className="py-3 eyebrow font-medium">Ingredient</th>
+                  <th className="py-3 eyebrow font-medium text-right">Qty</th>
+                  <th className="py-3 eyebrow font-medium text-right">Effective kg</th>
+                  <th className="py-3 eyebrow font-medium text-right">$/kg</th>
+                  <th className="py-3 eyebrow font-medium text-right">Cost</th>
                 </tr>
               </thead>
               <tbody>
                 {result.costing.breakdown.map((b, i) => (
-                  <tr key={i} className="border-b border-border/40 last:border-0">
-                    <td className="py-2">{b.name}</td>
-                    <td className="py-2 text-right font-mono">
+                  <tr key={i} className="border-b border-ink-600/30 last:border-0">
+                    <td className="py-3 font-display text-lg text-cream-100">{b.name}</td>
+                    <td className="py-3 text-right font-mono text-base text-cream-300">
                       {b.quantity}
                       {b.unit}
                     </td>
-                    <td className="py-2 text-right font-mono">{b.quantityKg}</td>
-                    <td className="py-2 text-right font-mono">{nzd(b.pricePerKg)}</td>
-                    <td className="py-2 text-right font-mono">{nzd(b.cost)}</td>
+                    <td className="py-3 text-right font-mono text-base text-cream-500">{b.quantityKg}</td>
+                    <td className="py-3 text-right font-mono text-base text-cream-500">{nzd(b.pricePerKg)}</td>
+                    <td className="py-3 text-right font-mono text-base text-cream-100">{nzd(b.cost)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -219,25 +226,27 @@ export function NewRecipeForm() {
           </div>
 
           {result.unmatched.length > 0 && (
-            <div className="rounded border border-warn/40 bg-warn/10 px-4 py-3 text-sm">
-              <div className="font-medium text-warn">Unmatched ingredients ({result.unmatched.length})</div>
-              <ul className="mt-1 list-disc list-inside text-muted">
+            <div className="rounded-sm border border-amber-warm/40 bg-amber-warm/5 px-5 py-4 text-base">
+              <div className="font-display italic text-lg text-amber-warm">
+                {result.unmatched.length} unmatched ingredient{result.unmatched.length === 1 ? "" : "s"}
+              </div>
+              <ul className="mt-2 list-disc list-inside text-cream-400 font-mono text-sm">
                 {result.unmatched.map((u) => (
                   <li key={u}>{u}</li>
                 ))}
               </ul>
-              <div className="mt-2 text-xs text-muted">
+              <div className="mt-2 text-sm text-cream-500 italic">
                 These won&apos;t be saved. Add them to the master ingredient list first.
               </div>
             </div>
           )}
 
           <div className="flex items-center justify-end gap-3">
-            {saved && <span className="text-sm text-accent">Saved ✓</span>}
+            {saved && <span className="font-display italic text-bamboo text-lg">Saved ✓</span>}
             <button
               onClick={onSave}
               disabled={savePending || result.items.length === 0}
-              className="px-4 py-2 text-sm rounded bg-accent text-bg font-medium disabled:opacity-50"
+              className="px-6 py-3 text-base rounded-sm bg-vermillion text-cream-50 font-mono uppercase tracking-eyebrow hover:bg-vermillion-light transition-colors disabled:opacity-50"
             >
               {savePending ? "Saving…" : "Save recipe"}
             </button>
@@ -250,8 +259,8 @@ export function NewRecipeForm() {
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label className="flex flex-col gap-1">
-      <span className="text-xs uppercase tracking-wider text-muted">{label}</span>
+    <label className="flex flex-col gap-2">
+      <span className="eyebrow">{label}</span>
       {children}
     </label>
   );
@@ -259,9 +268,9 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 function Cell({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
-    <div className="rounded border border-border bg-bg px-3 py-2">
-      <div className="text-xs uppercase tracking-wider text-muted">{label}</div>
-      <div className={`mt-1 text-lg font-semibold font-mono ${accent ? "text-accent" : ""}`}>{value}</div>
+    <div className="rounded-sm border border-ink-600/60 bg-ink-900/60 px-5 py-4">
+      <div className="eyebrow">{label}</div>
+      <div className={`mt-1 font-display text-3xl font-light ${accent ? "text-vermillion" : "text-cream-50"}`}>{value}</div>
     </div>
   );
 }
@@ -275,18 +284,18 @@ function ParsedByBadge({
 }) {
   if (parsedBy === "claude") {
     return (
-      <span className="px-2 py-0.5 rounded text-xs bg-accent/15 text-accent border border-accent/30">
-        AI-parsed
+      <span className="px-3 py-1 rounded-sm text-sm bg-bamboo/15 text-bamboo border border-bamboo/40 font-mono uppercase tracking-eyebrow">
+        AI
       </span>
     );
   }
   const title = fallbackReason ? `Fell back to regex: ${fallbackReason}` : "No ANTHROPIC_API_KEY set — using regex";
   return (
     <span
-      className="px-2 py-0.5 rounded text-xs bg-warn/15 text-warn border border-warn/30"
+      className="px-3 py-1 rounded-sm text-sm bg-amber-warm/15 text-amber-warm border border-amber-warm/40 font-mono uppercase tracking-eyebrow"
       title={title}
     >
-      regex (fallback)
+      regex
     </span>
   );
 }
