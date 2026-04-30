@@ -129,7 +129,34 @@ journalctl -u phantom -f         # tail logs
 
 ## Cloudflare + a subdomain (recommended path)
 
-If your domain is on Cloudflare, you don't need Let's Encrypt at the origin — Cloudflare can handle TLS for you. Three options, increasing security:
+If your domain is on Cloudflare, you don't need Let's Encrypt at the origin — Cloudflare can handle TLS for you.
+
+### Demo path — just get it live (5 minutes)
+
+For a demo where Phantom doesn't need to be public-internet hardened, this is the shortest possible runbook. Assumes the build steps above are done and `pm2 start npm --name phantom -- start` is running on port 3000.
+
+```bash
+# Tiny reverse proxy on port 80 → 3000 using Caddy
+sudo dnf install -y 'dnf-command(copr)'
+sudo dnf copr enable -y @caddy/caddy
+sudo dnf install -y caddy
+sudo tee /etc/caddy/Caddyfile > /dev/null <<'EOF'
+:80 {
+    reverse_proxy localhost:3000
+}
+EOF
+sudo systemctl enable --now caddy
+```
+
+Then in **EC2 security group**: open port **80** inbound from `0.0.0.0/0`.
+
+Then in **Cloudflare**:
+- DNS → add `A` record for `phantom.yourdomain.nz` pointing at the EC2 public IP, **Proxied** (orange cloud)
+- SSL/TLS → set mode to **Flexible**
+
+Visit `https://phantom.yourdomain.nz` — it works. Cloudflare terminates HTTPS at the edge, talks to your origin over plain HTTP on port 80. Total origin-side effort: one Caddyfile and one security-group rule.
+
+> **Demo only.** The Cloudflare→origin leg is unencrypted, and your origin is exposed on 80 to any IP. Fine for a chef preview, not fine for production. When you graduate, switch to Option 2 (Full strict + Origin CA + locked SG) below.
 
 ### Option 1 — "Flexible" mode (fastest, weakest)
 
